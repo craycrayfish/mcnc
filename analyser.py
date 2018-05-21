@@ -9,7 +9,7 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 import math
-from simulatornxn import simulate
+from simNxN2 import simulate
 import time
 
 '''
@@ -18,9 +18,7 @@ The generalised Naughts and Crosses Game:
     A n x n square grid 
     
             COLUMN
-        0   1   ... n-1
- ROW
-  0     0 | 1 | .. | 0        Crosses: 1 (starts first)
+        0   1   ... n-1     0 | 1 | .. | 0        Crosses: 1 (starts first)
        ---|---|----|---
   1    -1 | -1| .. | 1        Naughts: -1
        ---|---|----|---
@@ -48,7 +46,7 @@ def generate_n(n,max_n):
 
 ### Calculate the edge given m and n
 def calculate_edge(m,n):
-    trials = 400*np.square(n)
+    trials = 100*np.square(n)
     score = simulate(trials,n,m)    
     edge = (score[0]-score[1])/trials
     return edge
@@ -94,7 +92,7 @@ def analyse(max_n):
     
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=max_n, mode="expand", borderaxespad=0.) 
     plt.grid()
-    plt.savefig('8x8case-2.png',bbox_inches='tight')
+    plt.savefig('8x8case-3.png',bbox_inches='tight')
     
     print('Time taken: ',time.time()-start)
     return

@@ -39,7 +39,6 @@ def init_grid(n=3):
 ### Create a random order of nxn moves
 def generate_moves(n):
     return np.random.permutation(n**2)
-
 ### Plays move coordinate on grid
 def play_move(grid,n,move,turn):
     x = int(move % n)
@@ -56,11 +55,13 @@ def rotate_grid(grid):
 def check_rows(subgrid,m):
     col_sum = np.sum(subgrid,axis = 0)
     col_sum = set(col_sum)
+    #print(col_sum)
     if m in col_sum:
         return 0
     if -m in col_sum:
         return 1
     trace = np.trace(subgrid)
+    #print(trace)
     if trace == m:
         return 0
     elif trace == -m:
@@ -122,8 +123,8 @@ def simulate(trials,n,m):
 
 ''' Score is in the format [Cross_score, Naught_score] '''
 
-np.random.seed(7)
-print(simulate(500,3,3))
+#np.random.seed(7)
+#print(simulate(500,3,3))
 
 
 
