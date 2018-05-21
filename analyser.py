@@ -46,7 +46,7 @@ def generate_n(n,max_n):
 
 ### Calculate the edge given m and n
 def calculate_edge(m,n):
-    trials = 100*np.square(n)
+    trials = 500*np.square(n)
     score = simulate(trials,n,m)    
     edge = (score[0]-score[1])/trials
     return edge
@@ -92,7 +92,7 @@ def analyse(max_n):
     
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=max_n, mode="expand", borderaxespad=0.) 
     plt.grid()
-    plt.savefig('8x8case-3.png',bbox_inches='tight')
+    plt.savefig('8x8case-4.png',bbox_inches='tight')
     
     print('Time taken: ',time.time()-start)
     return
@@ -100,7 +100,7 @@ def analyse(max_n):
 
 
 
-print(analyse(8))
+print(analyse(9))
 
 
 

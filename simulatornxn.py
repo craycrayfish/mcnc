@@ -88,7 +88,6 @@ def play_game(score,n,m):
     for move in moves:
         turn += 1
         grid = play_move(grid,n,move,turn)
-        print(grid)
         min_move = m*2-1
         if turn > min_move:
             outcome = check_win(grid,n,m)
@@ -124,7 +123,7 @@ def simulate(trials,n,m):
 ''' Score is in the format [Cross_score, Naught_score] '''
 
 #np.random.seed(7)
-#print(simulate(500,3,3))
+print(simulate(40500,9,9))
 
 
 
