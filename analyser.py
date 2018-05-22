@@ -46,21 +46,32 @@ def generate_n(n,max_n):
 
 ### Calculate the edge given m and n
 def calculate_edge(m,n):
-    trials = 500*np.square(n)
-    score = simulate(trials,n,m)    
-    edge = (score[0]-score[1])/trials
-    return edge
+    trials = 400*np.square(n)
+    score = simulate(trials,n,m)   
+    score[score%2==1] = 1
+    score[(score%2==0)&(score!=0)] = -1
+    edge = np.sum(score)/trials
+    std = np.std(score)
+    pop_std = std/np.sqrt(trials)
+    '''
+    p1_win = np.sum(score[score==1])
+    p2_win = np.sum(score[score==-1])
+    draw = np.sum(score[score==0])
+'''    
+    return edge,pop_std
 
 
 ### Generates an edge for each of the n,m cases,
 ### where m ranges from 3 to n
 def generate_edge(n, max_n):
     edge_axis = []
+    edge_err = []
 ### m takes the value of n
     for grid_size in range(n,max_n+1):
-        edge_axis = np.append(edge_axis,calculate_edge(n,grid_size))
-
-    return edge_axis
+        edge,err = calculate_edge(n,grid_size)
+        edge_axis = np.append(edge_axis,edge)
+        edge_err = np.append(edge_err,err)
+    return edge_axis,edge_err
 
 
 
@@ -78,17 +89,18 @@ def analyse(max_n):
         'figure.figsize': [6, 4]
     } 
     plt.rcParams.update(params)
-    plt.figure(figsize=(3,3/1.6), dpi=200)    
+    plt.figure(figsize=(3,3/1.6), dpi=400)    
     
     color = ['red','orange','yellow','green','blue','violet']
+
 
 ### End formatting
     
     for n in range(3,max_n +1):
 ### m follows the value of n
         n_axis = generate_n(n,max_n)
-        edge_axis = generate_edge(n,max_n)
-        plt.plot(n_axis,edge_axis,'x', ms =1, color = 'C'+str(n),label = str(n))
+        edge_axis,edge_err = generate_edge(n,max_n)
+        plt.errorbar(n_axis,edge_axis,yerr=edge_err,fmt='o', ms =1, color = 'C'+str(n),label = str(n),capsize =0,elinewidth=0.5)
     
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=max_n, mode="expand", borderaxespad=0.) 
     plt.grid()
@@ -100,7 +112,7 @@ def analyse(max_n):
 
 
 
-print(analyse(9))
+print(analyse(8))
 
 
 

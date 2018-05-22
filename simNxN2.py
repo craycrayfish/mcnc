@@ -28,13 +28,14 @@ def gen_moves(n):
 def check_win(grid_to_check, n, m,player,move):
     ### Creates structure elements to check against
     struc_row = np.ones((1,m),dtype=np.int)
-    ### Replaces the non player turn tokens with 0
-    ### since the checking function operates on binary images
+    ### Extracts out the row and column of the last played move
     row = grid_to_check[move[0],:]
     col = grid_to_check[:,move[1]]
-    
+    ### Calculate the offset of the diagonal of the last played move relative
+    ### to the main diagonal
     offset = move[1]-move[0]
     anti_offset = n - move[1] - move[0] - 1
+    ### Checks if the relevant diagonal is long enough to have a win
     if abs(offset) <= n-m+1:
         diag = np.append(np.diag(grid_to_check,k=offset),np.zeros(abs(offset)))
     else: 
@@ -44,11 +45,11 @@ def check_win(grid_to_check, n, m,player,move):
     else:
         anti_diag = np.zeros(n)
     grid = np.reshape(np.concatenate((row,col,diag,anti_diag)),(4,n))
-
+    ### Replaces the non player turn tokens with 0
+    ### since the checking function operates on binary images
     grid[grid == -player] = 0
 
     ### Checks for the structure (win positions) in the grid
-    ### Makes a 1D array with the diagonal elements
     #grid_diag = np.reshape(np.diag(grid),(1,n))
     return np.any(ndimage.binary_erosion(grid, struc_row).astype(np.int))
 
@@ -64,7 +65,7 @@ def check_win(grid_to_check, n, m,player,move):
     return False
 '''
 
-### Given n and m, plays a random game and returns the turn in which
+### Given n and m, plays a random game and returns thne turn in which
 ### game is won. 0 is for draws
 def play_game(n,m):
     grid,moves = init_grid(n),gen_moves(n)
@@ -87,10 +88,14 @@ def simulate(trials,n,m):
     for trial in range(0,trials):
         ### Adds the turn in which game is won
         score = np.append(score,[play_game(n,m)])
-    print(score)
+
+    print('Time taken v2:',time.time()-start) 
+
+
+
     turn,occurences = np.unique(score,return_counts=True)
     result = np.array(list(zip(turn,occurences)))
-    print('Time taken v2:',time.time()-start) 
+    
     try: 
         draw = occurences[turn==0][0]
     except:
@@ -104,8 +109,9 @@ def simulate(trials,n,m):
     print('Draw: ',draw)
     print('P1 Win: ', p1_win)
     print('P2 Win: ', p2_win)
+    return score
 
-    return np.array((p1_win,p2_win))
+#    return np.array((p1_win,p2_win))
 
 
     
@@ -113,11 +119,10 @@ def simulate(trials,n,m):
 #print(check_win(make_grid(),3))
 #print(gen_moves(4))
 #np.random.seed(7)
-print(simulate(20,10,7))
+    
+simulate(10000,5,5)
 
-        
-        
-        
+         
         
         
         

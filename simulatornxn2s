@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon May 21 22:11:22 2018
+
+@author: shawn
+"""
+'''
+For a n X n grid with the following setup:
+    
+            COLUMN
+        0   1   ... n-1
+ ROW
+  0     0 | 1 | .. | 0        Crosses: 1 (starts first)
+       ---|---|----|---
+  1    -1 | -1| .. | 1        Naughts: -1
+       ---|---|----|---
+  :     : | : | .. | :        Blank: 0
+       ---|---|----|---
+ n-1    1 | 0 | .. | 0
+  
+
+All games will be played simultaneously
+grid information will be stored as a 3D trial x n x n array.
+
+Game is won when m crosses/naughts in a row are 
+placed horizontally, vertically or diagonally
+
+'''
+import time
+import numpy as np
+import scipy as sp
+from scipy import ndimage
+
+
+### Creates a grid of n dimensions
+def init_grid(trials,n):
+    return np.zeros((trials,n,n), dtype=np.int)
+
+
+### Moves are in a trials x n x n 3D array with each n x n array having 
+### integers [0, n**2] detailing the turn number
+def gen_moves(trials,n):
+    moves = []
+    for trial in range(0,trials):
+        moves = np.concatenate((moves,np.random.permutation(n**2)))
+    moves = np.reshape(moves,(trials,n,n))
+    return moves
+
+### Generates the structure arrays to be used by the check win function
+def gen_struc(m):
+    global struc_row, struc_col, struc_diag, struc_adiag
+    struc_row = np.ones(m,dtype=np.int)
+    struc_col = np.ones((1,m,1),dtype=np.int)
+    struc_diag = np.reshape(np.diag(struc_row),(1,m,m))
+    struc_adiag = np.reshape(np.array(list(zip(*reversed(np.diag(struc_row))))),(1,m,m))
+    struc_row = np.reshape(struc_row,(1,1,m))
+    #print(struc_row,struc_col,struc_diag,struc_adiag)
+    return
+
+### Checks the grid for any wins, then updating the score array with the turn
+### a particular board has won
+def check_win(grid,moves,score,n,m,move,player):
+    ### Creates a new boolean grid containing only the player's token
+    grid_to_check = (grid==player)
+    #print(grid_to_check)
+    ### Same sized grid showing the presence of structures
+    winner = np.asarray(ndimage.binary_erosion(grid_to_check, struc_row).astype(np.int))
+    #print(winner)
+    winner += np.asarray(ndimage.binary_erosion(grid_to_check, struc_col).astype(np.int))
+    winner += np.asarray(ndimage.binary_erosion(grid_to_check, struc_diag).astype(np.int))
+    winner += np.asarray(ndimage.binary_erosion(grid_to_check, struc_adiag).astype(np.int))
+    #print(grid_to_check)
+    ### Delete the winning grids and movesets, and add turn to score
+    no_wins = len(np.unique(winner.nonzero()[0]))
+    if no_wins > 0:
+        score = np.append(score,no_wins*[move])
+        win_loc = winner.nonzero()[0]
+        grid = np.delete(grid,win_loc,axis = 0)
+        moves = np.delete(moves,win_loc,axis=0)
+    #print('score',score)
+    return grid,score,moves
+
+### Plays each move and checks for win
+def play_game(trials,n,m):
+    grid,moves = init_grid(trials,n),gen_moves(trials,n)
+    min_move = 2*m-2
+    gen_struc(m)
+    score = np.array([],dtype=np.int)
+    for move in range(1,n**2+1):
+        #print('move: ',move)
+        ### Places the player's token at the position of the move number
+        player = 2*(move % 2) - 1
+        grid[moves==move-1] = player
+        ### Checks if enough moves have passed to start checking
+        if move > min_move:
+            #print(grid)
+            grid,score,moves = check_win(grid,moves,score,n,m,move,player)
+            #print(score)
+            
+    return score
+    
+def simulate(trials,n,m):
+    start = time.time()
+    ### Creates a 1D array to record the turn won
+    score = play_game(trials,n,m)
+    p1_win = np.sum(score%2==1)
+    p2_win = np.sum(score%2==0)
+    draw = trials - p1_win - p2_win
+    
+    print('Time taken:',time.time()-start) 
+    print('Games: ',trials)
+    print('M,N: ', m,n)
+    print('P1: ', p1_win, ' P2: ',p2_win,' Draw: ',draw)
+    return score
+
+#gen_moves(3,3)
+simulate(300,5,5)
+
+'''
+a = np.zeros((3,5,5),dtype=np.int)
+structure = np.diag(np.ones(3,dtype = np.int))
+a[1:2,0:3,1:4] = 1
+b = a[1]
+structure = np.reshape(structure,(1,3,3))
+print(a)
+print(structure)
+
+start = time.time()
+print(ndimage.binary_erosion(a, structure=structure))
+print(time.time()-start)
+
+start = time.time()
+for n in range(0,50):
+    ndimage.binary_erosion(b, structure=np.ones((3,1)))
+print(time.time()-start)
+'''
