@@ -28,6 +28,7 @@ placed horizontally, vertically or diagonally
 
 '''
 import time
+import datetime
 import numpy as np
 import scipy as sp
 from scipy import ndimage
@@ -37,6 +38,15 @@ from scipy import ndimage
 def init_grid(trials,n):
     return np.zeros((trials,n,n), dtype=np.int)
 
+### Saves a given array as a csv
+def save_arr(array,name,trials,n,m):
+    name = str(name)
+    trials = str(trials)
+    n = str(n)
+    m = str(m)
+    date = datetime.datetime.now().strftime('%d-%m-%H.%M ')
+    name = date+trials+','+n+','+m+','+name
+    np.save(name,array)
 
 ### Moves are in a trials x n x n 3D array with each n x n array having 
 ### integers [0, n**2] detailing the turn number
@@ -45,6 +55,7 @@ def gen_moves(trials,n):
     for trial in range(0,trials):
         moves = np.concatenate((moves,np.random.permutation(n**2)))
     moves = np.reshape(moves,(trials,n,n))
+    moves = np.array(moves,dtype = np.int)
     return moves
 
 ### Generates the structure arrays to be used by the check win function
@@ -64,9 +75,8 @@ def check_win(grid,moves,score,n,m,move,player):
     ### Creates a new boolean grid containing only the player's token
     grid_to_check = (grid==player)
     #print(grid_to_check)
-    ### Same sized grid showing the presence of structures
+    ### Same sized grid showing the presence of any of the structures
     winner = np.asarray(ndimage.binary_erosion(grid_to_check, struc_row).astype(np.int))
-    #print(winner)
     winner += np.asarray(ndimage.binary_erosion(grid_to_check, struc_col).astype(np.int))
     winner += np.asarray(ndimage.binary_erosion(grid_to_check, struc_diag).astype(np.int))
     winner += np.asarray(ndimage.binary_erosion(grid_to_check, struc_adiag).astype(np.int))
@@ -74,19 +84,21 @@ def check_win(grid,moves,score,n,m,move,player):
     ### Delete the winning grids and movesets, and add turn to score
     no_wins = len(np.unique(winner.nonzero()[0]))
     if no_wins > 0:
-        score = np.append(score,no_wins*[move])
         win_loc = winner.nonzero()[0]
+        score[win_loc]=move
         grid = np.delete(grid,win_loc,axis = 0)
-        moves = np.delete(moves,win_loc,axis=0)
+        moves = np.delete(moves,win_loc,axis = 0)
+        #moves[win_loc] = np.zeros((1,n,n),dtype=np.int)
     #print('score',score)
     return grid,score,moves
 
 ### Plays each move and checks for win
 def play_game(trials,n,m):
     grid,moves = init_grid(trials,n),gen_moves(trials,n)
+    save_arr(moves,'moves',trials,n,m)
     min_move = 2*m-2
     gen_struc(m)
-    score = np.array([],dtype=np.int)
+    score = np.zeros(trials,dtype=np.int)
     for move in range(1,n**2+1):
         #print('move: ',move)
         ### Places the player's token at the position of the move number
@@ -97,16 +109,16 @@ def play_game(trials,n,m):
             #print(grid)
             grid,score,moves = check_win(grid,moves,score,n,m,move,player)
             #print(score)
-            
+    save_arr(score,'score',trials,n,m)
     return score
     
 def simulate(trials,n,m):
     start = time.time()
     ### Creates a 1D array to record the turn won
     score = play_game(trials,n,m)
+    draw = np.sum(score==0)
     p1_win = np.sum(score%2==1)
-    p2_win = np.sum(score%2==0)
-    draw = trials - p1_win - p2_win
+    p2_win = trials - draw - p1_win
     
     print('Time taken:',time.time()-start) 
     print('Games: ',trials)
@@ -115,7 +127,7 @@ def simulate(trials,n,m):
     return score
 
 #gen_moves(3,3)
-simulate(300,5,5)
+simulate(60,5,5)
 
 '''
 a = np.zeros((3,5,5),dtype=np.int)
