@@ -46,7 +46,7 @@ def generate_n(n,max_n):
 
 ### Calculate the edge given m and n
 def calculate_edge(m,n):
-    trials = 400*np.square(n)
+    trials = 100*np.square(n)
     score = simulate(trials,n,m)   
     score[score%2==1] = 1
     score[(score%2==0)&(score!=0)] = -1
@@ -112,7 +112,7 @@ def analyse(max_n):
 
 
 
-print(analyse(8))
+print(analyse(7))
 
 
 
