@@ -95,7 +95,7 @@ def check_win(grid,moves,score,n,m,move,player):
 ### Plays each move and checks for win
 def play_game(trials,n,m):
     grid,moves = init_grid(trials,n),gen_moves(trials,n)
-    save_arr(moves,'moves',trials,n,m)
+    #save_arr(moves,'moves',trials,n,m)
     min_move = 2*m-2
     gen_struc(m)
     score = np.zeros(trials,dtype=np.int)
@@ -109,7 +109,7 @@ def play_game(trials,n,m):
             #print(grid)
             grid,score,moves = check_win(grid,moves,score,n,m,move,player)
             #print(score)
-    save_arr(score,'score',trials,n,m)
+    #save_arr(score,'score',trials,n,m)
     return score
     
 def simulate(trials,n,m):
@@ -119,7 +119,8 @@ def simulate(trials,n,m):
     draw = np.sum(score==0)
     p1_win = np.sum(score%2==1)
     p2_win = trials - draw - p1_win
-    
+    return score
+'''
     print('Time taken:',time.time()-start) 
     print('Games: ',trials)
     print('M,N: ', m,n)
@@ -127,8 +128,9 @@ def simulate(trials,n,m):
     return score
 
 #gen_moves(3,3)
-simulate(60,5,5)
+#simulate(600,12,9)
 
+'''
 '''
 a = np.zeros((3,5,5),dtype=np.int)
 structure = np.diag(np.ones(3,dtype = np.int))

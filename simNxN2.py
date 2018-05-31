@@ -89,7 +89,7 @@ def simulate(trials,n,m):
         ### Adds the turn in which game is won
         score = np.append(score,[play_game(n,m)])
 
-    print('Time taken v2:',time.time()-start) 
+     
 
 
 
@@ -103,14 +103,18 @@ def simulate(trials,n,m):
     p1_win = np.sum(occurences[turn%2==1])
     p2_win = np.sum(occurences[turn%2==0])- draw
     
+    return score
 
+ 
+    '''
     print('Games: ',trials)
     print('M,N: ', m,n)
     print('Draw: ',draw)
     print('P1 Win: ', p1_win)
     print('P2 Win: ', p2_win)
+    print('Time taken v2:',time.time()-start)
     return score
-
+'''
 #    return np.array((p1_win,p2_win))
 
 
@@ -120,7 +124,7 @@ def simulate(trials,n,m):
 #print(gen_moves(4))
 #np.random.seed(7)
     
-simulate(10000,5,5)
+#simulate(10000,5,5)
 
          
         

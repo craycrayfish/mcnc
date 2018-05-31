@@ -110,8 +110,9 @@ def simulate(trials,n,m):
     p1_win = score[0]
     p2_win = score[1]
     draw = trials - p1_win - p2_win
+    return score
 
-
+'''
     print('Games: ',trials)
     print('M,N: ', m, n)
     print('Draw: ', draw)
@@ -120,10 +121,11 @@ def simulate(trials,n,m):
     print('Time taken:', time.time()-start)
     return np.array((p1_win,p2_win))
 
+'''
 ''' Score is in the format [Cross_score, Naught_score] '''
 
 #np.random.seed(7)
-print(simulate(40500,9,9))
+#print(simulate(500,9,9))
 
 
 
