@@ -32,21 +32,22 @@ import datetime
 import numpy as np
 import scipy as sp
 from scipy import ndimage
-
+import os
 
 ### Creates a grid of n dimensions
 def init_grid(trials,n):
     return np.zeros((trials,n,n), dtype=np.int)
 
 ### Saves a given array as a csv
-def save_arr(array,name,trials,n,m):
-    name = str(name)
-    trials = str(trials)
-    n = str(n)
-    m = str(m)
-    date = datetime.datetime.now().strftime('%d-%m-%H.%M ')
-    name = date+trials+','+n+','+m+','+name
-    np.save(name,array)
+def save_data(score,movelist,trials,n,m):
+    trials,n,m = str(trials), str(n), str(m)
+    date = datetime.datetime.now().strftime('%d-%m:%H;%M')
+    folder = os.path.join(os.getcwd(),'data')
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    name = n+'x'+m+'x'+trials+':'+date
+    np.savez_compressed(os.path.join(folder,name),score=score,moves=movelist)
+    return 
 
 ### Moves are in a trials x n x n 3D array with each n x n array having 
 ### integers [0, n**2] detailing the turn number
@@ -86,40 +87,49 @@ def check_win(grid,moves,score,n,m,move,player):
     if no_wins > 0:
         win_loc = winner.nonzero()[0]
         score[win_loc]=move
-        grid = np.delete(grid,win_loc,axis = 0)
-        moves = np.delete(moves,win_loc,axis = 0)
-        #moves[win_loc] = np.zeros((1,n,n),dtype=np.int)
+        #grid = np.delete(grid,win_loc,axis = 0)
+        #moves = np.delete(moves,win_loc,axis = 0)
+        moves[win_loc] = np.zeros((1,n,n),dtype=np.int)
+        grid[win_loc] = np.zeros((1,n,n),dtype=np.int)
     #print('score',score)
     return grid,score,moves
 
 ### Plays each move and checks for win
-def play_game(trials,n,m):
-    grid,moves = init_grid(trials,n),gen_moves(trials,n)
-    #save_arr(moves,'moves',trials,n,m)
-    min_move = 2*m-2
-    gen_struc(m)
-    score = np.zeros(trials,dtype=np.int)
-    for move in range(1,n**2+1):
-        #print('move: ',move)
-        ### Places the player's token at the position of the move number
-        player = 2*(move % 2) - 1
-        grid[moves==move-1] = player
-        ### Checks if enough moves have passed to start checking
-        if move > min_move:
-            #print(grid)
-            grid,score,moves = check_win(grid,moves,score,n,m,move,player)
-            #print(score)
-    #save_arr(score,'score',trials,n,m)
-    return score
+def play_game(sets,n,m):
+    trials = 500
+    scorelist = np.array((),dtype=np.int)
+    movelist = np.array((),dtype=np.int)
+    for i in range(sets):
+        grid,moves = init_grid(trials,n),gen_moves(trials,n)
+        movelist = np.append(movelist,moves)
+        min_move = 2*m-2
+        gen_struc(m)
+        score = np.zeros(trials,dtype=np.int)
+        for move in range(1,n**2+1):
+            #print('move: ',move)
+            ### Places the player's token at the position of the move number
+            player = 2*(move % 2) - 1
+            grid[moves==move-1] = player
+            ### Checks if enough moves have passed to start checking
+            if move > min_move:
+                #print(grid)
+                grid,score,moves = check_win(grid,moves,score,n,m,move,player)
+        scorelist = np.append(scorelist, score)
+        
+    save_data(score,movelist,trials,n,m)
+
+    return scorelist
     
 def simulate(trials,n,m):
+    sets = int(trials/500)
     start = time.time()
     ### Creates a 1D array to record the turn won
-    score = play_game(trials,n,m)
+    score = play_game(sets,n,m)
     draw = np.sum(score==0)
     p1_win = np.sum(score%2==1)
     p2_win = trials - draw - p1_win
     return score
+
 '''
     print('Time taken:',time.time()-start) 
     print('Games: ',trials)
@@ -128,9 +138,9 @@ def simulate(trials,n,m):
     return score
 
 #gen_moves(3,3)
-#simulate(600,12,9)
-
+simulate(1000,3,3)
 '''
+
 '''
 a = np.zeros((3,5,5),dtype=np.int)
 structure = np.diag(np.ones(3,dtype = np.int))

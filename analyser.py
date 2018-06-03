@@ -9,7 +9,7 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 import math
-from simNxN2 import simulate
+from simulatornxn2s import simulate
 import time
 
 '''
@@ -46,12 +46,14 @@ def generate_n(n,max_n):
 
 ### Calculate the edge given m and n
 def calculate_edge(m,n):
-    trials = 100*np.square(n)
-    score = simulate(trials,n,m)   
+    sets = int(np.ceil(np.square(n)))
+    trials = sets*500 
+    score = simulate(trials,n,m)
     score[score%2==1] = 1
     score[(score%2==0)&(score!=0)] = -1
     edge = np.sum(score)/trials
     std = np.std(score)
+    print(edge,std)
     pop_std = std/np.sqrt(trials)
     '''
     p1_win = np.sum(score[score==1])
@@ -61,41 +63,55 @@ def calculate_edge(m,n):
     return edge,pop_std
 
 
-### Generates an edge for each of the n,m cases,
-### where m ranges from 3 to n
-def generate_edge(n, max_n):
-    edge_axis = []
-    edge_err = []
-### m takes the value of n
-    for grid_size in range(n,max_n+1):
-        edge,err = calculate_edge(n,grid_size)
-        edge_axis = np.append(edge_axis,edge)
-        edge_err = np.append(edge_err,err)
-    return edge_axis,edge_err
-
-
-
-
 def analyse(max_n):
     start = time.time()
         
 ### Formatting 
     params = {
-        'axes.labelsize': 6,
+        'axes.labelsize': 5,
         'font.size': 6,
-        'legend.fontsize': 6,
-        'xtick.labelsize': 6,
-        'ytick.labelsize': 6,
-        'figure.figsize': [6, 4]
+        'legend.fontsize': 3.5,
+        'xtick.labelsize': 4,
+        'ytick.labelsize': 4,
+        'figure.figsize': [6, 4],
+        'lines.linewidth': 0.5,
+        'grid.linewidth': 0.2
     } 
     plt.rcParams.update(params)
-    plt.figure(figsize=(3,3/1.6), dpi=400)    
+    plt.figure(figsize=(3,3/1.6), dpi=300)    
     
-    color = ['red','orange','yellow','green','blue','violet']
-
+    
+    color = [(.0,.0,1),(.1,.5,1),(.2,.8,1)]
+    label = ['m = n','m = n-1', 'm = n-2']
 
 ### End formatting
-    
+
+    ### m_diff refers to the value of n-m
+    m_diff = np.arange(3)
+    for m in m_diff:
+        n_axis = np.arange(3+m,max_n+1,dtype=np.int)
+        edge_axis = np.array(())
+        edge_err =np.array(())
+        for n in n_axis:
+            print(n-m,',',n)
+            edge,err = calculate_edge(n-m,n)
+            edge_axis = np.append(edge_axis,edge)
+            edge_err = np.append(edge_err, err)
+            
+        plt.errorbar(n_axis,edge_axis,yerr=edge_err,fmt='o', ms=.5, 
+                     color=color[m], label=label[m],capsize =0,
+                     elinewidth=0.5)
+        plt.plot(n_axis,edge_axis,color=color[m])
+        
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=len(m_diff),
+                   mode="expand", borderaxespad=0.)    
+    plt.grid()
+    plt.savefig('n=8.png',bbox_inches='tight')
+    print('Time taken: ',time.time()-start)
+    return
+'''    
+### Old code that checks for every n,m scenario for 3 >= m >= n
+
     for n in range(3,max_n +1):
 ### m follows the value of n
         n_axis = generate_n(n,max_n)
@@ -104,15 +120,15 @@ def analyse(max_n):
     
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=max_n, mode="expand", borderaxespad=0.) 
     plt.grid()
-    plt.savefig('8x8case-4.png',bbox_inches='tight')
+    plt.savefig('n=8.png',bbox_inches='tight')
     
     print('Time taken: ',time.time()-start)
     return
+'''
 
 
 
-
-print(analyse(7))
+print(analyse(10))
 
 
 
