@@ -45,21 +45,21 @@ def generate_n(n,max_n):
 
 
 ### Calculate the edge given m and n
-def calculate_edge(m,n):
-    sets = int(np.ceil(np.square(n)))
+def calculate_edge(m,n,fixed=False,start=0):
+    sets = int(np.ceil(np.square(n)))*2
     trials = sets*500 
-    score = simulate(trials,n,m)
+    score = simulate(trials,n,m,fixed,start)
+    ### To analyse the edge
     score[score%2==1] = 1
-    score[(score%2==0)&(score!=0)] = -1
+    score[(score%2==0)&(score!=0)] = -1    
     edge = np.sum(score)/trials
-    std = np.std(score)
-    print(edge,std)
-    pop_std = std/np.sqrt(trials)
-    '''
-    p1_win = np.sum(score[score==1])
-    p2_win = np.sum(score[score==-1])
-    draw = np.sum(score[score==0])
-'''    
+    
+    ### To calculate the mean turn won
+    #score[score==0] = n**2
+    #edge = np.mean(score)
+    
+    pop_std = np.std(score)/np.sqrt(trials)
+       
     return edge,pop_std
 
 
@@ -81,13 +81,13 @@ def analyse(max_n):
     plt.figure(figsize=(3,3/1.6), dpi=300)    
     
     
-    color = [(.0,.0,1),(.1,.5,1),(.2,.8,1)]
-    label = ['m = n','m = n-1', 'm = n-2']
+    color = [(.0,.0,1),(.1,.5,1),(.2,.8,1),(.4,.8,1),(.6,.9,1)]
+    label = ['m = n','m = n-1', 'm = n-2','m = n-3', 'm = n-4']
 
 ### End formatting
 
     ### m_diff refers to the value of n-m
-    m_diff = np.arange(3)
+    m_diff = np.arange(5)
     for m in m_diff:
         n_axis = np.arange(3+m,max_n+1,dtype=np.int)
         edge_axis = np.array(())
@@ -104,9 +104,11 @@ def analyse(max_n):
         plt.plot(n_axis,edge_axis,color=color[m])
         
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=len(m_diff),
-                   mode="expand", borderaxespad=0.)    
+                   mode="expand", borderaxespad=0.)  
+    plt.xlabel('N')
+    plt.ylabel('Game Length')
     plt.grid()
-    plt.savefig('n=8.png',bbox_inches='tight')
+    plt.savefig('GameLength10.png',bbox_inches='tight')
     print('Time taken: ',time.time()-start)
     return
 '''    
@@ -124,12 +126,60 @@ def analyse(max_n):
     
     print('Time taken: ',time.time()-start)
     return
+
+
+def gen_index_board(max_n):
+    mid = int((max_n+1)/2)
+    subgrid = np.zeros((mid,mid),dtype=np.int)
+    for a in range(mid):
+        min_index = a*(max_n+1)
+        max_index = int(((2*a+1)*max_n+1)/2)
+        print(min_index,max_index)
+        print(np.shape(np.reshape(np.arange(min_index,max_index),(max_n-a,-1))))
+        subgrid[a,a:mid-1] = np.arange(min_index,max_index)
+        subgrid[a:mid-1,a] = np.reshape(np.arange(min_index,max_index),(max_n-a,-1))
+    print(subgrid)
+gen_index_board(4)
+
+def starting_pos(max_n):
+    for row in range(0,int((max_n+1)/2)):
+        for index in range(int(row*(max_n+1)),int(((2*row+1)*max_n+1)/2)):
+            print(index)
+            edge,err= calculate_edge(max_n,max_n,fixed=True,start=index)
+            print(edge,err)
 '''
 
+def analyse_pos(max_n):
+    edge_arr = np.array(())
+    for index in range(max_n**2):
+        edge,err= calculate_edge(max_n-1,max_n,fixed=True,start=index)
+        print(edge,err)
+        edge_arr= np.append(edge_arr,edge)
+    edge_arr = np.reshape(edge_arr,(max_n,max_n))
+    print(edge_arr)
 
+    params = {
+        'axes.labelsize': 5,
+        'font.size': 6,
+        'legend.fontsize': 3.5,
+        'xtick.labelsize': 4,
+        'ytick.labelsize': 4,
+        'figure.figsize': [6, 4],
+        'lines.linewidth': 0.5,
+        'grid.linewidth': 0.2
+    } 
+    plt.rcParams.update(params)
+    plt.figure(figsize=(3,3/1.6), dpi=300)    
+    cmap=plt.get_cmap('autumn_r')
+    file_name = 'Advantage on board size ' + str(max_n) + ',' + str(max_n-1)
+    img = plt.imshow(edge_arr,cmap=cmap)
+    plt.title(file_name)
+    plt.colorbar(img,cmap=cmap)
+    
 
-print(analyse(10))
-
+    plt.savefig(file_name+'.png',bbox_inches='tight')
+analyse_pos(6)
+#starting_pos(5)
 
 
 

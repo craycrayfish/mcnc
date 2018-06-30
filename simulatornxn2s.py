@@ -59,6 +59,17 @@ def gen_moves(trials,n):
     moves = np.array(moves,dtype = np.int)
     return moves
 
+### Generates same movearray but with option to fix first move
+def gen_fixed_moves(trials,n,start):
+    moves = []
+    for trial in range(0,trials):
+        move = np.random.permutation(n**2 - 1) + 1
+        move = np.insert(move,start,0)
+        moves = np.concatenate((moves,move))
+    moves = np.reshape(moves,(trials,n,n))
+    moves = np.array(moves,dtype = np.int)
+    return moves
+
 ### Generates the structure arrays to be used by the check win function
 def gen_struc(m):
     global struc_row, struc_col, struc_diag, struc_adiag
@@ -95,12 +106,18 @@ def check_win(grid,moves,score,n,m,move,player):
     return grid,score,moves
 
 ### Plays each move and checks for win
-def play_game(sets,n,m):
+def play_game(sets,n,m,fixed,start):
     trials = 500
     scorelist = np.array((),dtype=np.int)
     movelist = np.array((),dtype=np.int)
     for i in range(sets):
-        grid,moves = init_grid(trials,n),gen_moves(trials,n)
+        grid = init_grid(trials,n)
+        if fixed:
+            moves = gen_fixed_moves(trials,n,start)
+            #print(moves)
+        else:
+            moves = gen_moves(trials,n)
+            
         movelist = np.append(movelist,moves)
         min_move = 2*m-2
         gen_struc(m)
@@ -116,20 +133,21 @@ def play_game(sets,n,m):
                 grid,score,moves = check_win(grid,moves,score,n,m,move,player)
         scorelist = np.append(scorelist, score)
         
-    save_data(score,movelist,trials,n,m)
+    #save_data(score,movelist,trials,n,m)
 
     return scorelist
     
-def simulate(trials,n,m):
+def simulate(trials,n,m,fixed=False,start=0):
     sets = int(trials/500)
-    start = time.time()
+    start_time = time.time()
     ### Creates a 1D array to record the turn won
-    score = play_game(sets,n,m)
+    score = play_game(sets,n,m,fixed,start)
     draw = np.sum(score==0)
     p1_win = np.sum(score%2==1)
     p2_win = trials - draw - p1_win
     return score
 
+#print(gen_controlled_moves(2,3,1))
 '''
     print('Time taken:',time.time()-start) 
     print('Games: ',trials)
